@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="{{ url_for('static', path='/css/files.css') }}" rel="stylesheet">
+    <title>UpFast: File List</title>
+</head>
+<body>
+    <h1>File List</h1>
+
+    {% for file in files %}
+    <hr>
+        <div class="file">
+            {% if file.fileType == "image" %}
+                <img src="/files/{{ file.name }}">
+            {% elif file.fileType == "video" %}
+                <video controls src="/files/{{ file.name }}"></video>
+            {% elif file.fileType == "text" %}
+                <pre>{{ file.content }}</pre>
+            {% endif %}
+            <div class="info">
+                <a href="/files/{{ file.name }}" download>{{ file.name }}</a></td>
+                <a href="/delete/{{ file.name }}">delete!</a></td>
+            </div>
+        </div>
+    {% endfor %}
+
+</body>
+</html>

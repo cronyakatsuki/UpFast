@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="{{ url_for('static', path='/css/style.css') }}" rel="stylesheet">
+    <title>UpFast</title>
+</head>
+<body>
+    <h1>UpFast: Minimal file upload and sharing tool</h1>
+
+    <p><a href="0x0.st">0x0.st</a> Influenced file upload and sharing tool</p>
+
+    <p>To upload files use curl: <code>curl -F "file=@/path/to/file" "{{ request.url }}"</code></p>
+
+    <p>To delete a file using curl: <code>curl "{{ request.url }}/delete/file_name"</code></p>
+
+    <p>To get of all files hosten on the instance check <a href="/files">files</a></p>
+
+    <p>Created and maintained by <a href="https://cronyakatsuki.xyz">Crony Akatsuki</a></p>
+
+    <p>Code is hosted on <a href="https://code.cronyakatsuki/crony/upfast">https://code.cronyakatsuki.xyz/crony/upfast</a></p>
+
+</body>
+</html>
