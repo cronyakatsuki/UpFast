@@ -1,6 +1,6 @@
 # UpFast
 
-simple tool to host file upload and sharing.
+simple tool to for uploading and sharing files that is selfhostable.
 
 ## How to host
 
