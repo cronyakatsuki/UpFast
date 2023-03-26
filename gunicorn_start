@@ -5,7 +5,7 @@ NAME=upfast
 # GROUP=upfast
 WORKERS=3
 WORKER_CLASS=uvicorn.workers.UvicornWorker
-VENV=.venv/bin/activate
+VENV=venv/bin/activate
 BIND=unix:/tmp/upfast.lock
 LOG_LEVEL=error
 
