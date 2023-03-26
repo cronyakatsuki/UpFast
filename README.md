@@ -99,3 +99,7 @@ server {
     }
 }
 ```
+
+# Contributions
+
+Thanks [TLasT](https://craftmenners.men) on his help with testing and documentation.
