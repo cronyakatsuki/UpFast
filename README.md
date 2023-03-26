@@ -57,11 +57,11 @@ Restart=on-failure
 ```
 Finally run following commmands.
 
-```
+```bash
 # refresh services
-`sudo systemctl daemon-reload` 
+sudo systemctl daemon-reload 
 # enable the service
-`sudo systemctl enable upfast.service`
+sudo systemctl enable upfast.service
 ```
 
 ### Docker
