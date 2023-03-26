@@ -6,7 +6,7 @@ NAME=upfast
 WORKERS=3
 WORKER_CLASS=uvicorn.workers.UvicornWorker
 VENV=venv/bin/activate
-BIND=unix:/tmp/upfast.lock
+BIND=unix:/tmp/upfast.sock
 LOG_LEVEL=error
 
 source $VENV
