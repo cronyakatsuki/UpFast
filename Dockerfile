@@ -10,4 +10,4 @@ RUN apk add --no-cache --update libmagic \
 
 COPY . .
 
-CMD ["uvicorn", "main:app", "--host", "127.0.0.1", "--port", "8000", "--proxy-headers"]
+CMD ["uvicorn", "main:app", "--host", "127.0.0.1", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips='*'"]
