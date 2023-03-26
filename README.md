@@ -24,14 +24,13 @@ git clone https://code.cronyakatsuki.xyz/crony/upfast .
 
 # Create the virtual environment and load it for user on default
 python3 -m venv venv
-echo "source /usr/local/upfast/venv/bin/activate" > "/usr/local/upfast/.profile"
-
 # Activate the virtual environment
 source venv/bin/activate
-
 # Install all the requirements
-cd upfast-src/
 pip install -r requirements.txt
+
+# Load environment by default
+echo "source /usr/local/upfast/venv/bin/activate" > "/usr/local/upfast/.profile"
 
 # create the upload directory
 mkdir upload
