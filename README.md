@@ -1,6 +1,6 @@
 # UpFast
 
-simple tool for uploading and sharing files that is selfhostable.
+Simple tool for uploading and sharing files that you can self-host.
 
 ## How to host
 
@@ -35,7 +35,7 @@ echo "source /usr/local/upfast/venv/bin/activate" > "/usr/local/upfast/.profile"
 # create the upload directory
 mkdir upload
 
-# Run the project
+# UpFast go brrr
 uvicorn main:app --host 127.0.0.1 --port 8000 --proxy-headers --forwarded-allow-ips='*'
 ```
 
@@ -55,8 +55,14 @@ WorkingDirectory=/usr/local/upfast/
 ExecStart=/usr/local/upfast/venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000 --proxy-headers --forwarded-allow-ips='*'
 Restart=on-failure
 ```
+Finally run following commmands.
 
-Then just run  `sudo systemctl daemon-reload` and enable the service with `sudo systemctl enable upfast.service`
+```
+# refresh services
+`sudo systemctl daemon-reload` 
+# enable the service
+`sudo systemctl enable upfast.service`
+```
 
 ### Docker
 
