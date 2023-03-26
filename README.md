@@ -1,6 +1,6 @@
 # UpFast
 
-simple tool to for uploading and sharing files that is selfhostable.
+simple tool for uploading and sharing files that is selfhostable.
 
 ## How to host
 
@@ -34,7 +34,7 @@ To run the docker container check the container id with `docker images` command.
 sudo docker run -p 8000:8000 -v ./upload:/usr/src/app/upload CONTAINER_ID
 ```
 
-The sample command will need a upload directory to where you run it from so you can replace `./upload` with a different path to save uploaded stuff.
+The sample command will need an upload directory, you can replace `./upload` with a different path to save uploaded stuff.
 
 ### Nginx Proxy setup
 
