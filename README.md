@@ -1,6 +1,6 @@
 # UpFast
 
-simple tool for uploading and sharing files that is selfhostable.
+Simple tool for uploading and sharing files that you can self-host.
 
 ## How to host
 
@@ -15,28 +15,27 @@ We will also be setting up an specific user to run the app as safe as possible w
 sudo useradd --shell /bin/bash --system \
     --home-dir "/usr/local/upfast" -m upfast
 
-# Change to upfast user and cd /usr/local/upfast
+# Change to upfast user and go to upfast dir
 su upfast
-cd /usr/local/upfast
+cd
 
 # Clone the project directly into upfast-src directory
-git clone https://code.cronyakatsuki.xyz/crony/upfast upfast-src
+git clone https://code.cronyakatsuki.xyz/crony/upfast .
 
 # Create the virtual environment and load it for user on default
 python3 -m venv venv
-echo "source /usr/local/upfast/venv/bin/activate" > "/usr/local/upfast/.profile"
-
 # Activate the virtual environment
 source venv/bin/activate
-
 # Install all the requirements
-cd upfast-src/
 pip install -r requirements.txt
+
+# Load environment by default
+echo "source /usr/local/upfast/venv/bin/activate" > "/usr/local/upfast/.profile"
 
 # create the upload directory
 mkdir upload
 
-# Run the project
+# UpFast go brrr
 uvicorn main:app --host 127.0.0.1 --port 8000 --proxy-headers --forwarded-allow-ips='*'
 ```
 
@@ -52,12 +51,18 @@ Documentation=https://code.cronyakatsuki.xyz/crony/upfast
 [Service]
 User=upfast
 Group=upfast
-WorkingDirectory=/usr/local/upfast/upfast-src
+WorkingDirectory=/usr/local/upfast/
 ExecStart=/usr/local/upfast/venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000 --proxy-headers --forwarded-allow-ips='*'
 Restart=on-failure
 ```
+Finally run following commmands.
 
-Then just run  `sudo systemctl daemon-reload` and enable the service with `sudo systemctl enable upfast.service`
+```
+# refresh services
+`sudo systemctl daemon-reload` 
+# enable the service
+`sudo systemctl enable upfast.service`
+```
 
 ### Docker
 
