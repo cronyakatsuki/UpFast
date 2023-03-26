@@ -104,7 +104,7 @@ async def delete(request: Request, file: str, user_agent: Annotated[Union[str, N
     if exists(file_path):
         remove(file_path)
         if re.search("^curl/.*", str(user_agent)):
-            return PlainTextResponse(f"file {file} doesn't exist on the server\n")
+            return PlainTextResponse(f"file {file} deleted from the server\n")
         else:
             return RedirectResponse(request.url_for('files'))
     if re.search("^curl/.*", str(user_agent)):
