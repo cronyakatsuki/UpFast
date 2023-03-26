@@ -15,12 +15,12 @@ We will also be setting up an specific user to run the app as safe as possible w
 sudo useradd --shell /bin/bash --system \
     --home-dir "/usr/local/upfast" -m upfast
 
-# Change to upfast user and cd /usr/local/upfast
+# Change to upfast user and go to upfast dir
 su upfast
-cd /usr/local/upfast
+cd
 
 # Clone the project directly into upfast-src directory
-git clone https://code.cronyakatsuki.xyz/crony/upfast upfast-src
+git clone https://code.cronyakatsuki.xyz/crony/upfast .
 
 # Create the virtual environment and load it for user on default
 python3 -m venv venv
@@ -52,7 +52,7 @@ Documentation=https://code.cronyakatsuki.xyz/crony/upfast
 [Service]
 User=upfast
 Group=upfast
-WorkingDirectory=/usr/local/upfast/upfast-src
+WorkingDirectory=/usr/local/upfast/
 ExecStart=/usr/local/upfast/venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000 --proxy-headers --forwarded-allow-ips='*'
 Restart=on-failure
 ```
