@@ -20,7 +20,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 
 # Run the project
-uvicorn main:app --host 127.0.0.1 --port 8000 --proxy-headers
+uvicorn main:app --host 127.0.0.1 --port 8000 --proxy-headers --forwarded-allow-ips='*'
 ```
 
 ### Docker
@@ -34,4 +34,27 @@ To run the docker container check the container id with `docker images` command.
 sudo docker run -p 8000:8000 -v ./upload:/usr/src/app/upload CONTAINER_ID
 ```
 
-The sample command will need a upload directory to where you run it from so you can replace ./upload with a different path to save uploaded stuff.
+The sample command will need a upload directory to where you run it from so you can replace `./upload` with a different path to save uploaded stuff.
+
+### Nginx Proxy setup
+
+This is an example nginx proxy config for http
+
+```nginx
+server {
+
+    listen 80;
+    listen [::]:80;
+
+    server_name upfast.example.com ;
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_redirect off;
+        proxy_buffering off;
+    }
+}
+```
