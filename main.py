@@ -1,4 +1,5 @@
 import shutil, magic, re
+from typing import Annotated, Union
 from os import listdir, remove
 from os.path import abspath, dirname, exists
 from fastapi import FastAPI, Request, UploadFile, File, Header
@@ -56,7 +57,7 @@ app.mount("/static", StaticFiles(directory="static"), name='static')
 
 # show the homepage when just getting the website
 @app.get("/", response_class=HTMLResponse)
-async def index(request: Request, user_agent: str | None = Header(default=None)):
+async def index(request: Request, user_agent: Annotated[Union[str, None], Header()] = None):
     if re.search("^curl/.*", str(user_agent)):
         return PlainTextResponse("It fucking works!\n")
     else:
@@ -66,7 +67,7 @@ async def index(request: Request, user_agent: str | None = Header(default=None))
 
 # get the file user want's to upload and save it
 @app.post("/")
-async def upload( request: Request, file: UploadFile = File(...), user_agent: str | None = Header(default=None)):
+async def upload( request: Request, file: UploadFile = File(...), user_agent: Annotated[Union[str, None], Header()] = None):
     file_location = f"upload/{file.filename}"
     if exists(file_location):
         context = f'''File: "{request.url._url}files/{file.filename}" already exists on the server!
@@ -82,7 +83,7 @@ Please rename the file or delete the one on the server\n'''
 
 # show the files page with the list of all files or if run with curl list all files in url format
 @app.get("/files")
-async def files( request: Request, user_agent: str | None = Header(default=None)):
+async def files( request: Request, user_agent: Annotated[Union[str, None], Header()] = None):
     path = f"{dirname(abspath(__file__))}/upload/"
     file_list = listdir(path)
     files = file_list_generator(path, file_list)
@@ -98,7 +99,7 @@ async def files( request: Request, user_agent: str | None = Header(default=None)
 
 # delete specific file when getting this request
 @app.get("/delete/{file}")
-async def delete(request: Request, file: str, user_agent: str | None = Header(default=None)):
+async def delete(request: Request, file: str, user_agent: Annotated[Union[str, None], Header()] = None):
     file_path = f"{dirname(abspath(__file__))}/upload/{file}"
     if exists(file_path):
         remove(file_path)
