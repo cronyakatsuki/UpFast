@@ -22,15 +22,15 @@ hr {
 img {
     display: block;
     margin: auto;
-    max-width: 800;
-    max-height: 800;
+    max-width: 800px;
+    max-height: 800px;
 }
 
 video {
     display: block;
     margin: auto;
-    max-width: 800;
-    max-height: 800;
+    max-width: 800px;
+    max-height: 800px;
 }
 
 a {
