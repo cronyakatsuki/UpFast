@@ -23,9 +23,9 @@ cd
 git clone https://code.cronyakatsuki.xyz/crony/upfast .
 
 # Create the virtual environment and load it for user on default
-python3 -m venv venv
+python3 -m venv env
 # Activate the virtual environment
-source venv/bin/activate
+source env/bin/activate
 # Install all the requirements
 pip install -r requirements.txt
 
@@ -52,7 +52,7 @@ Documentation=https://code.cronyakatsuki.xyz/crony/upfast
 User=upfast
 Group=upfast
 WorkingDirectory=/usr/local/upfast/
-ExecStart=/usr/local/upfast/venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000 --proxy-headers --forwarded-allow-ips='*'
+ExecStart=/usr/local/upfast/env/bin/uvicorn main:app --host 127.0.0.1 --port 8000 --proxy-headers --forwarded-allow-ips='*'
 Restart=on-failure
 ```
 Finally run following commmands.
