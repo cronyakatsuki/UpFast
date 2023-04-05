@@ -44,3 +44,8 @@ This is an example nginx proxy config for http
 cp ./upfast-nginx /etc/nginx/sites-available/upfast
 ln -sf /etc/nginx/sites-available/upfast /etc/nginx/sites-enabled/
 ```
+
+> Load config
+```bash
+systemctl reload nginx
+```
