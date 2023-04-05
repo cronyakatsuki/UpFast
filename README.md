@@ -29,9 +29,6 @@ source venv/bin/activate
 # Install all the requirements
 pip install -r requirements.txt
 
-# Load environment by default
-echo "source /usr/local/upfast/venv/bin/activate" > "/usr/local/upfast/.profile"
-
 # create the upload directory
 mkdir upload
 
