@@ -7,8 +7,6 @@ then
 	exit 1
 fi
 
-cp ./upfast.service /etc/systemd/system/upfast.service
-
 useradd --shell /bin/sh --system --home-dir /usr/local/upfast upfast
 mkdir -p /usr/local/upfast # dodge copying of skeletons
 
@@ -24,4 +22,4 @@ python3 -m venv env
 pip install -r requirements.txt
 mkdir upload'
 
-systemctl enable --now upfast.service
+cp ./upfast.service /etc/systemd/system/upfast.service
