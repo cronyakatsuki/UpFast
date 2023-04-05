@@ -23,4 +23,4 @@ pip install -r requirements.txt
 mkdir upload'
 
 cp ./upfast.service /etc/systemd/system/upfast.service
-systemctl daemon reload
+systemctl daemon-reload
