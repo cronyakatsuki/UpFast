@@ -8,3 +8,6 @@ Group=upfast
 WorkingDirectory=/usr/local/upfast/
 ExecStart=/usr/local/upfast/env/bin/uvicorn main:app --host 127.0.0.1 --port 8000 --proxy-headers --forwarded-allow-ips='*'
 Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
