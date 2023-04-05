@@ -15,7 +15,7 @@ chmod 700 /usr/local/upfast
 
 su upfast -c'
 cd
-git clone https://git.craftmenners.men/upfast .
+git clone https://code.cronyakatsuki.xyz/crony/upfast .
 
 python3 -m venv env
 . ./env/bin/activate
