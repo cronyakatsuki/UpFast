@@ -10,57 +10,20 @@ To run on a regular system I recommend to use a virtual environment to install t
 
 We will also be setting up an specific user to run the app as safe as possible with a systemd service file for startup
 
+#### Installing
 ```bash
-# Create the user (You can specify a different home-dir)
-sudo useradd --shell /bin/bash --system \
-    --home-dir "/usr/local/upfast" -m upfast
-
-# Change to upfast user and go to upfast dir
-su upfast
-cd
-
-# Clone the project directly into upfast-src directory
-git clone https://code.cronyakatsuki.xyz/crony/upfast .
-
-# Create the virtual environment and load it for user on default
-python3 -m venv venv
-# Activate the virtual environment
-source venv/bin/activate
-# Install all the requirements
-pip install -r requirements.txt
-
-# create the upload directory
-mkdir upload
-
-# UpFast go brrr
-uvicorn main:app --host 127.0.0.1 --port 8000 --proxy-headers --forwarded-allow-ips='*'
+./install.sh
 ```
 
-#### Autostart with systemd
-
-To autostart with systemd you will need to create a systemd .service file in path `/etc/systemd/system/upfast.service` and add this content to it.
-
-```systemd
-[Unit]
-Description=UpFast service
-Documentation=https://code.cronyakatsuki.xyz/crony/upfast
-
-[Service]
-User=upfast
-Group=upfast
-WorkingDirectory=/usr/local/upfast/
-ExecStart=/usr/local/upfast/venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000 --proxy-headers --forwarded-allow-ips='*'
-Restart=on-failure
-```
-Finally run following commmands.
-
+#### Running
 ```bash
-# refresh services
-sudo systemctl daemon-reload 
-# enable the service
-sudo systemctl enable upfast.service
+systemctl start upfast.service
 ```
 
+#### Start on boot
+```bash
+systemctl enable upfast.service
+```
 ### Docker
 
 In the repo there is an included dockerfile to generate an image from the latest version of everything, to generate an image just run `docker build . -t upfast` (You need root privileges or to be in the docker group).
@@ -77,24 +40,14 @@ The sample command will need an upload directory, you can replace `./upload` wit
 ### Nginx Proxy setup
 
 This is an example nginx proxy config for http
+```bash
+cp ./upfast-nginx /etc/nginx/sites-available/upfast
+ln -sf /etc/nginx/sites-available/upfast /etc/nginx/sites-enabled/
+```
 
-```nginx
-server {
-
-    listen 80;
-    listen [::]:80;
-
-    server_name upfast.example.com ;
-
-    location / {
-        proxy_pass http://127.0.0.1:8000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_redirect off;
-        proxy_buffering off;
-    }
-}
+> Load config
+```bash
+systemctl reload nginx
 ```
 
 # Contributions
