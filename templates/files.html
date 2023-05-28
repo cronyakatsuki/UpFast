@@ -22,7 +22,7 @@
             {% endif %}
             <div class="info">
                 <a href="/files/{{ file.name }}" download>{{ file.name }}</a>
-                <a href="/delete/{{ file.name }}">delete!</a>
+                <a href="/delete/{{ file.name }}  onclick="return confirm('Are you sure?')"">delete!</a>
             </div>
         </div>
     {% endfor %}
