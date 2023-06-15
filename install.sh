@@ -1,11 +1,11 @@
-#!/bin/sh
+#!/bin/bash
 
 # quick install (and run) script for upfast using systemd
-if [ $EUID -ne 0]
-then
-	echo "Please run as root"
-	exit 1
-fi
+
+# Check if script is run by root
+[ $EUID -ne 0 ] && printf '%s\n' "Please run as root" && exit 1
+
+apt-get install python3-pip
 
 useradd --shell /bin/sh --system --home-dir /usr/local/upfast upfast
 mkdir -p /usr/local/upfast # dodge copying of skeletons
@@ -22,5 +22,5 @@ python3 -m venv env
 pip install -r requirements.txt
 mkdir upload'
 
-cp ./upfast.service /etc/systemd/system/upfast.service
+cp /usr/local/upfast/upfast.service /etc/systemd/system/upfast.service
 systemctl daemon-reload
