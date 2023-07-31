@@ -13,7 +13,7 @@ class _File:
     def __init__(self, name: str, fileType: str, content=None):
         self.name = name
         self.fileType = fileType
-        self.content = content if content is not None else ''
+        self.content = content if content is not None else ""
 
 
 # File list generator with filetype assignemt and content reading for previews
@@ -29,7 +29,7 @@ def file_list_generator(path: str, file_list: list[str]):
             with open(f"{path}{file}") as f:
                 content = f.read()
             _file = _File(file, "text", content)
-        elif file_type == 'application/json':
+        elif file_type == "application/json":
             with open(f"{path}{file}") as f:
                 content = f.read()
             _file = _File(file, "text", content)
@@ -48,46 +48,57 @@ app = FastAPI()
 
 
 # Mount all uploaded files at the /files path
-app.mount("/files", StaticFiles(directory="upload"), name='upload')
+app.mount("/files", StaticFiles(directory="upload"), name="upload")
 
 
 # Mount static files like css
-app.mount("/static", StaticFiles(directory="static"), name='static')
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 # show the homepage when just getting the website
 @app.get("/", response_class=HTMLResponse)
-async def index(request: Request, user_agent: Annotated[Union[str, None], Header()] = None):
+async def index(
+    request: Request, user_agent: Annotated[Union[str, None], Header()] = None
+):
     if re.search("^curl/.*", str(user_agent)):
         return PlainTextResponse("It fucking works!\n")
     else:
-        context = {'request': request, "user_agent": user_agent}
+        context = {"request": request, "user_agent": user_agent}
         return templates.TemplateResponse("index.html", context)
 
 
 # get the file user want's to upload and save it
 @app.post("/")
-async def upload( request: Request, file: UploadFile = File(...), user_agent: Annotated[Union[str, None], Header()] = None):
+async def upload(
+    request: Request,
+    file: UploadFile = File(...),
+    user_agent: Annotated[Union[str, None], Header()] = None,
+):
     file_location = f"upload/{file.filename}"
     if exists(file_location):
-        context = f'''File: "{request.url._url}files/{file.filename}" already exists on the server!
-Please rename the file or delete the one on the server\n'''
+        context = f"""File: "{request.url._url}files/{file.filename}" already exists on the server!
+Please rename the file or delete the one on the server\n"""
         return PlainTextResponse(context)
     with open(file_location, "wb+") as file_object:
         shutil.copyfileobj(file.file, file_object)
     if re.search("^curl/.*", str(user_agent)):
         return PlainTextResponse(f"{request.url._url}files/{file.filename}\n")
     else:
-        return {"filename": file.filename, "path": f"{request.url._url}files/{file.filename}"}
+        return {
+            "filename": file.filename,
+            "path": f"{request.url._url}files/{file.filename}",
+        }
 
 
 # show the files page with the list of all files or if run with curl list all files in url format
 @app.get("/files")
-async def files( request: Request, user_agent: Annotated[Union[str, None], Header()] = None):
+async def files(
+    request: Request, user_agent: Annotated[Union[str, None], Header()] = None
+):
     path = f"{dirname(abspath(__file__))}/upload/"
     file_list = listdir(path)
     files = file_list_generator(path, file_list)
-    context = { 'request': request, "files": files}
+    context = {"request": request, "files": files}
     if re.search("^curl/.*", str(user_agent)):
         context = ""
         for file in files:
@@ -99,15 +110,19 @@ async def files( request: Request, user_agent: Annotated[Union[str, None], Heade
 
 # delete specific file when getting this request
 @app.get("/delete/{file}")
-async def delete(request: Request, file: str, user_agent: Annotated[Union[str, None], Header()] = None):
+async def delete(
+    request: Request,
+    file: str,
+    user_agent: Annotated[Union[str, None], Header()] = None,
+):
     file_path = f"{dirname(abspath(__file__))}/upload/{file}"
     if exists(file_path):
         remove(file_path)
         if re.search("^curl/.*", str(user_agent)):
             return PlainTextResponse(f"file {file} deleted from the server\n")
         else:
-            return RedirectResponse(request.url_for('files'))
+            return RedirectResponse(request.url_for("files"))
     if re.search("^curl/.*", str(user_agent)):
         return PlainTextResponse(f"file {file} doesn't exist on the server\n")
     else:
-        return RedirectResponse(request.url_for('files'))
+        return RedirectResponse(request.url_for("files"))
