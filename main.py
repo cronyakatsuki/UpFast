@@ -11,7 +11,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Settings
 class Settings(BaseSettings):
-    upload_only: bool = True
+    upload_only: bool = False
 
     model_config = SettingsConfigDict(env_file=".env")
 
