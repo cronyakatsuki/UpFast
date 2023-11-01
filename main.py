@@ -6,6 +6,14 @@ from fastapi import FastAPI, Request, UploadFile, File, Header
 from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+# Settings
+class Settings(BaseSettings):
+    upload_only: bool = True
+
+    model_config = SettingsConfigDict(env_file=".env")
 
 
 # file class
@@ -43,6 +51,8 @@ def file_list_generator(path: str, file_list: list[str]):
 templates = Jinja2Templates(directory="templates")
 
 
+# Create settings
+settings = Settings()
 # Create fastapi template
 app = FastAPI()
 
@@ -63,7 +73,11 @@ async def index(
     if re.search("^curl/.*", str(user_agent)):
         return PlainTextResponse("It fucking works!\n")
     else:
-        context = {"request": request, "user_agent": user_agent}
+        context = {
+            "request": request,
+            "user_agent": user_agent,
+            "upload_only": settings.upload_only,
+        }
         return templates.TemplateResponse("index.html", context)
 
 
@@ -98,12 +112,12 @@ async def files(
     path = f"{dirname(abspath(__file__))}/upload/"
     file_list = listdir(path)
     files = file_list_generator(path, file_list)
-    context = {"request": request, "files": files}
+    context = {"request": request, "files": files, "upload_only": settings.upload_only}
     if re.search("^curl/.*", str(user_agent)):
-        context = ""
+        response = ""
         for file in files:
-            context += f"{request.url._url}/{file.name}\n"
-        return PlainTextResponse(f"{context}")
+            response += f"{request.url._url}/{file.name}\n"
+        return PlainTextResponse(f"{response}")
     else:
         return templates.TemplateResponse("files.html", context)
 
@@ -115,14 +129,20 @@ async def delete(
     file: str,
     user_agent: Annotated[Union[str, None], Header()] = None,
 ):
-    file_path = f"{dirname(abspath(__file__))}/upload/{file}"
-    if exists(file_path):
-        remove(file_path)
+    if settings.upload_only:
+        return PlainTextResponse(
+            "This api endpoint is not available on upload only instance. \
+If you wan't to delete a file ask the hoster of the instance!!"
+        )
+    else:
+        file_path = f"{dirname(abspath(__file__))}/upload/{file}"
+        if exists(file_path):
+            remove(file_path)
+            if re.search("^curl/.*", str(user_agent)):
+                return PlainTextResponse(f"file {file} deleted from the server\n")
+            else:
+                return RedirectResponse(request.url_for("files"))
         if re.search("^curl/.*", str(user_agent)):
-            return PlainTextResponse(f"file {file} deleted from the server\n")
+            return PlainTextResponse(f"file {file} doesn't exist on the server\n")
         else:
             return RedirectResponse(request.url_for("files"))
-    if re.search("^curl/.*", str(user_agent)):
-        return PlainTextResponse(f"file {file} doesn't exist on the server\n")
-    else:
-        return RedirectResponse(request.url_for("files"))
