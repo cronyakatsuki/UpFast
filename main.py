@@ -1,4 +1,6 @@
-import shutil, magic, re
+import shutil
+import magic
+import re
 from typing import Annotated, Union
 from os import listdir, remove
 from os.path import abspath, dirname, exists
