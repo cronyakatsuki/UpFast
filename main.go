@@ -17,6 +17,8 @@ func main() {
 
 	e.Renderer = t
 
+	e.Static("/", "static")
+
 	e.GET("/", Index)
 
 	e.Logger.Fatal(e.Start(":1323"))
