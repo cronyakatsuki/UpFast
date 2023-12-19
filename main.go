@@ -1,9 +1,12 @@
 package main
 
 import (
+	"errors"
 	"html/template"
 	"io"
+	"log"
 	"net/http"
+	"os"
 
 	"github.com/labstack/echo/v4"
 )
@@ -18,6 +21,17 @@ func main() {
 	e.Renderer = t
 
 	e.Static("/", "static")
+
+	files := "files"
+
+	if _, err := os.Stat(files); errors.Is(err, os.ErrNotExist) {
+		err := os.Mkdir(files, os.ModePerm)
+		if err != nil {
+			log.Println(err)
+		}
+	}
+
+	e.Static("/files", files)
 
 	e.GET("/", Index)
 
