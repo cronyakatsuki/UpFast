@@ -1,0 +1,29 @@
+body {
+  max-width: 900px;
+  margin: auto;
+  background: #303446;
+  color: #c6d0f5;
+}
+
+h1 {
+  font-size: 250%;
+  text-align: center;
+}
+
+a {
+  color: #f2d5cf;
+  text-decoration: none;
+  font-weight: bold;
+  padding: 5px;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+code {
+  background: #414559;
+  border-radius: 10px;
+  font-size: 105%;
+  padding: 2px;
+}
