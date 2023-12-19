@@ -67,6 +67,10 @@ func Upload(c echo.Context) error {
 		return err
 	}
 
+	if _, err := os.Stat("files/" + file.Filename); err == nil {
+		return c.String(http.StatusOK, "A file with the same name already exist's on the server.\n")
+	}
+
 	src, err := file.Open()
 	if err != nil {
 		return err
