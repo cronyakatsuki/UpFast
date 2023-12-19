@@ -35,6 +35,8 @@ func main() {
 
 	e.GET("/", Index)
 
+	e.POST("/", Upload)
+
 	e.GET("/files/", Files)
 
 	e.Logger.Fatal(e.Start(":1323"))
@@ -57,4 +59,30 @@ func Index(c echo.Context) error {
 
 func Files(c echo.Context) error {
 	return c.Render(http.StatusOK, "files", "test")
+}
+
+func Upload(c echo.Context) error {
+	file, err := c.FormFile("file")
+	if err != nil {
+		return err
+	}
+
+	src, err := file.Open()
+	if err != nil {
+		return err
+	}
+
+	dst, err := os.Create("files/" + file.Filename)
+	if err != nil {
+		return err
+	}
+	defer dst.Close()
+
+	if _, err = io.Copy(dst, src); err != nil {
+		return err
+	}
+
+	fileUrl := c.Request().Host + "/files/" + file.Filename + "\n"
+
+	return c.String(http.StatusOK, fileUrl)
 }
