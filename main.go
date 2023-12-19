@@ -35,6 +35,8 @@ func main() {
 
 	e.GET("/", Index)
 
+	e.GET("/files/", Files)
+
 	e.Logger.Fatal(e.Start(":1323"))
 }
 
@@ -51,4 +53,8 @@ func Index(c echo.Context) error {
 		"host":        c.Request().Host,
 		"upload_only": true,
 	})
+}
+
+func Files(c echo.Context) error {
+	return c.Render(http.StatusOK, "files", "test")
 }

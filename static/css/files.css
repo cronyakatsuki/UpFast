@@ -1,0 +1,66 @@
+html {
+  padding-bottom: 10%;
+}
+
+body {
+  max-width: 900px;
+  margin: auto;
+  background: #303446;
+  color: #c6d0f5;
+}
+
+h1 {
+  font-size: 250%;
+  text-align: center;
+}
+
+hr {
+  margin: 40px;
+  color: #626880;
+}
+
+img {
+  display: block;
+  margin: auto;
+  max-width: 800px;
+  max-height: 800px;
+}
+
+video {
+  display: block;
+  margin: auto;
+  max-width: 800px;
+  max-height: 800px;
+}
+
+a {
+  color: #f2d5cf;
+  text-decoration: none;
+  font-weight: bold;
+  padding: 5px;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+pre {
+  background: #292c3c;
+  font-size: 1am;
+  padding: 10px;
+  max-width: 800;
+  max-height: 10rem;
+  overflow-y: auto;
+  overflow-x: auto;
+  border: none;
+  border-radius: 1rem;
+}
+
+.file {
+  display: block;
+}
+
+.info {
+  display: block;
+  text-align: center;
+}
