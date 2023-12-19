@@ -1,0 +1,54 @@
+{{define "index"}}
+<!doctype html>
+<html lang="en">
+
+<head>
+  <title>UpFast</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- <link href="css/style.css" rel="stylesheet"> -->
+</head>
+
+<body>
+  <h1>UpFast: Minimal file upload and sharing tool</h1>
+
+  <p>
+    <a href="https://0x0.st">0x0.st</a> Influenced file upload and sharing
+    tool
+  </p>
+
+  <p>
+    To upload files use curl:
+    <code>curl -F "file=@/path/to/file" "{{index . "host"}}"</code>
+  </p>
+
+  <p>
+    To delete a file using curl:
+    <code>curl "{{index . "host"}}/delete/file_name"</code>
+  </p>
+
+  {{if index . "upload_only"}}
+  <p>
+    NOTE: This is an upload only instance, if you wan't a file on the instance
+    deleted ask the hoster to delete the file.
+  </p>
+  {{end}}
+
+  <p>
+    To get of all files hosted on the instance check
+    <a href="/files">files</a>
+  </p>
+
+  <p>
+    Created and maintained by
+    <a href="https://cronyakatsuki.xyz">Crony Akatsuki</a>
+  </p>
+
+  <p>
+    Code is hosted on
+    <a href="https://code.cronyakatsuki.xyz/crony/upfast">https://code.cronyakatsuki.xyz/crony/upfast</a>
+  </p>
+</body>
+
+</html>
+{{end}}
