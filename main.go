@@ -60,15 +60,21 @@ type Template struct {
 	templates *template.Template
 }
 
+type IndexData struct {
+	Host       string
+	UploadOnly bool
+}
+
 func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
 	return t.templates.ExecuteTemplate(w, name, data)
 }
 
 func Index(c echo.Context) error {
-	return c.Render(http.StatusOK, "index", map[string]interface{}{
-		"host":        c.Request().Host,
-		"upload_only": true,
-	})
+	data := IndexData{
+		Host:       c.Request().Host,
+		UploadOnly: false,
+	}
+	return c.Render(http.StatusOK, "index", data)
 }
 
 func Files(c echo.Context) error {
