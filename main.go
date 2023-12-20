@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"errors"
 	"html/template"
 	"io"
@@ -9,18 +10,30 @@ import (
 	"os"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
+
+//go:embed all:public/views/*.html
+var templates embed.FS
+
+//go:embed all:static/*
+var static embed.FS
 
 func main() {
 	t := &Template{
-		templates: template.Must(template.ParseGlob("public/views/*.html")),
+		templates: template.Must(template.ParseFS(templates, "public/views/*.html")),
 	}
 
 	e := echo.New()
 
 	e.Renderer = t
 
-	e.Static("/", "static")
+	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
+		Root:       "static",
+		Browse:     false,
+		HTML5:      true,
+		Filesystem: http.FS(static),
+	}))
 
 	files := "files"
 
