@@ -19,15 +19,15 @@
 
   <p>
     To upload files use curl:
-    <code>curl -F "file=@/path/to/file" "{{index . "host"}}"</code>
+    <code>curl -F "file=@/path/to/file" "{{.Host}}"</code>
   </p>
 
   <p>
     To delete a file using curl:
-    <code>curl "{{index . "host"}}/delete/file_name"</code>
+    <code>curl "{{.Host}}/delete/file_name"</code>
   </p>
 
-  {{if index . "upload_only"}}
+  {{if .UploadOnly}}
   <p>
     NOTE: This is an upload only instance, if you wan't a file on the instance
     deleted ask the hoster to delete the file.
