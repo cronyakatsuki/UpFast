@@ -27,6 +27,7 @@ func main() {
 	e := echo.New()
 
 	e.Renderer = t
+	e.Use(middleware.Logger())
 
 	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
 		Root:       "static",
