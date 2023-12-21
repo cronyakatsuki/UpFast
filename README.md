@@ -6,10 +6,12 @@ This one is gonna be a lot easier to deploy since all you need to do is download
 
 To change the port or the ip adress to listen for you can use `-p` and `-a` options respectivelly.
 
+There is alse the `-d` option that will set what domain name upfast will return when returning the file path when uploaded.
+
 > example
 
 ```bash
-./upfast -p 8080 -a 0.0.0.0
+./upfast -p 8080 -a 0.0.0.0 -d https://upfast.cronyakatsuki.xyz
 ```
 
 By default upfast listen's on 127.0.0.1 adress so if you wan't to access it outside your network you will either need to listen to 0.0.0.0 or use a reverse proxy. I recommend the usage of a reverse proxy.
@@ -60,14 +62,14 @@ Documentation=https://code.cronyakatsuki.xyz/crony/upfast
 User=upfast
 Group=upfast
 WorkingDirectory=/usr/local/upfast/
-ExecStart=/usr/local/upfast/upfast -p 8000 -a 127.0.0.1
+ExecStart=/usr/local/upfast/upfast -p 8000 -a 127.0.0.1 -d https://upfast.cronyakatsuki.xyz
 Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
 ```
 
-Remember to change the port if you need to or the listening adress.
+Remember to change the port if you need to, the listening adress and the domain name.
 
 After that run `systemctl daemon-reload` as root or with sudo.
 
