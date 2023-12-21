@@ -54,6 +54,8 @@ func main() {
 
 	e.GET("/files/", Files)
 
+	e.DELETE("/files/:file", Delete)
+
 	e.Logger.Fatal(e.Start(":1323"))
 }
 
@@ -197,4 +199,19 @@ func Upload(c echo.Context) error {
 	}
 
 	return c.Redirect(http.StatusMovedPermanently, "/files/"+file.Filename)
+}
+
+func Delete(c echo.Context) error {
+	file := c.Param("file")
+	filePath := "files/" + file
+
+	if _, err := os.Stat(filePath); err != nil {
+		return c.String(http.StatusOK, "That file doesn't exist on the server\n")
+	}
+
+	err := os.Remove(filePath)
+	if err != nil {
+		return c.String(http.StatusOK, "Error while deleting "+file+"\n")
+	}
+	return c.String(http.StatusOK, "Deleted file from server\n")
 }
