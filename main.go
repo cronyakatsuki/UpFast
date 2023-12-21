@@ -22,16 +22,21 @@ var templates embed.FS
 //go:embed all:static/*
 var static embed.FS
 
+var domain string
+
 func main() {
 	t := &Template{
 		templates: template.Must(template.ParseFS(templates, "public/views/*.html")),
 	}
 
-	port := flag.Int("p", 1323, "upfast port to listen on.")
-	adress := flag.String("a", "127.0.0.1", "upfast ip to listen to")
+	p := flag.Int("p", 1323, "upfast port to listen on.")
+	a := flag.String("a", "127.0.0.1", "upfast ip to listen to")
+	d := flag.String("d", "127.0.0.1", "upfast domain")
 	flag.Parse()
 
-	host := *adress + ":" + strconv.Itoa(*port)
+	host := *a + ":" + strconv.Itoa(*p)
+
+	domain = *d
 
 	e := echo.New()
 
@@ -91,7 +96,7 @@ func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Con
 
 func Index(c echo.Context) error {
 	data := IndexData{
-		Host: c.Request().Host,
+		Host: domain,
 	}
 	return c.Render(http.StatusOK, "index", data)
 }
@@ -191,7 +196,7 @@ func Upload(c echo.Context) error {
 		return err
 	}
 
-	fileUrl := c.Request().Host + "/files/" + file.Filename + "\n"
+	fileUrl := domain + "/files/" + file.Filename + "\n"
 
 	UserAgent := c.Request().UserAgent()
 
