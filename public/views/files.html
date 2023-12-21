@@ -11,6 +11,21 @@
 
 <body>
   <h1>File List</h1>
+  {{range .Files}}
+  <hr />
+  <div class="file">
+    {{if eq .FileType "image"}}
+    <img src="/files/{{.Name}}" alt="{{.Name}}" />
+    {{else if eq .FileType "video"}}
+    <video controls src="/files/{{.Name}}" />
+    {{else if eq .FileType "text"}}
+    <pre>{{.Content}}</pre>
+    {{end}}
+    <div class="info">
+      <a href="/files/{{.Name}}" download>{{.Name}}</a>
+    </div>
+  </div>
+  {{end}}
 </body>
 
 </html>

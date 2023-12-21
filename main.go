@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -60,6 +61,17 @@ type Template struct {
 	templates *template.Template
 }
 
+type File struct {
+	Name     string
+	FileType string
+	Content  string
+}
+
+type FilesData struct {
+	Files      []File
+	UploadOnly bool
+}
+
 type IndexData struct {
 	Host       string
 	UploadOnly bool
@@ -77,8 +89,74 @@ func Index(c echo.Context) error {
 	return c.Render(http.StatusOK, "index", data)
 }
 
+func GetFileContentType(ouput *os.File) (string, error) {
+	buf := make([]byte, 512)
+
+	_, err := ouput.Read(buf)
+	if err != nil {
+		return "", err
+	}
+
+	contentType := http.DetectContentType(buf)
+
+	return contentType, nil
+}
+
 func Files(c echo.Context) error {
-	return c.Render(http.StatusOK, "files", "test")
+	var files FilesData
+
+	filelist, err := os.ReadDir("./files/")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var Type string
+	var Content string
+
+	ImageMatch := regexp.MustCompile("^image/.*")
+	VideoMatch := regexp.MustCompile("^video/.*")
+	JsonMatch := regexp.MustCompile("application/json")
+	TextMatch := regexp.MustCompile("^text/.*|application/octet-stream")
+
+	for _, f := range filelist {
+		filePath := "files/" + f.Name()
+		file, err := os.Open(filePath)
+		if err != nil {
+			panic(err)
+		}
+
+		defer file.Close()
+
+		contentType, err := GetFileContentType(file)
+
+		switch {
+		case ImageMatch.MatchString(contentType):
+			Type = "image"
+			Content = ""
+		case VideoMatch.MatchString(contentType):
+			Type = "video"
+			Content = ""
+		case JsonMatch.MatchString(contentType):
+			Type = "text"
+			b, _ := os.ReadFile(filePath)
+			Content = string(b)
+		case TextMatch.MatchString(contentType):
+			Type = "text"
+			b, _ := os.ReadFile(filePath)
+			Content = string(b)
+		default:
+			Type = "else"
+			Content = ""
+		}
+
+		log.Print(contentType)
+		files.Files = append(
+			files.Files,
+			File{Name: f.Name(), FileType: Type, Content: Content},
+		)
+	}
+
+	return c.Render(http.StatusOK, "files", files)
 }
 
 func Upload(c echo.Context) error {
