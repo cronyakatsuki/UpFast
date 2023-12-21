@@ -183,5 +183,10 @@ func Upload(c echo.Context) error {
 
 	fileUrl := c.Request().Host + "/files/" + file.Filename + "\n"
 
-	return c.String(http.StatusOK, fileUrl)
+	UserAgent := c.Request().UserAgent()
+
+	if regexp.MatchString("^curl/.*", UserAgent); err != nil {
+		return c.String(http.StatusOK, fileUrl)
+	}
+	return c.Redirect(http.StatusMovedPermanently, "/files/"+file.Filename)
 }
