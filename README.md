@@ -31,7 +31,8 @@ chmod 700 /usr/local/upfast
 su upfast
 # go to upfast's user's home and curl the upfast binary
 cd ~
-curl -O binary
+curl -O https://code.cronyakatsuki.xyz/crony/UpFast/releases/download/v1.0/upfast
+chmod +x upfast
 ```
 
 ## Updating
@@ -41,7 +42,7 @@ When new update of upfast come's out all you will need to change to upfast user 
 ```bash
 su upfast
 cd ~
-curl -O binary
+curl -O https://code.cronyakatsuki.xyz/crony/UpFast/releases/download/v1.0/upfast
 ```
 
 ## Startup automaticallly on system restart
