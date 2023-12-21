@@ -3,12 +3,14 @@ package main
 import (
 	"embed"
 	"errors"
+	"flag"
 	"html/template"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"regexp"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -24,6 +26,12 @@ func main() {
 	t := &Template{
 		templates: template.Must(template.ParseFS(templates, "public/views/*.html")),
 	}
+
+	port := flag.Int("p", 1323, "upfast port to listen on.")
+	adress := flag.String("a", "127.0.0.1", "upfast ip to listen to")
+	flag.Parse()
+
+	host := *adress + ":" + strconv.Itoa(*port)
 
 	e := echo.New()
 
@@ -56,7 +64,7 @@ func main() {
 
 	e.DELETE("/files/:file", Delete)
 
-	e.Logger.Fatal(e.Start(":1323"))
+	e.Logger.Fatal(e.Start(host))
 }
 
 type Template struct {
