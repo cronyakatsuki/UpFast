@@ -68,13 +68,11 @@ type File struct {
 }
 
 type FilesData struct {
-	Files      []File
-	UploadOnly bool
+	Files []File
 }
 
 type IndexData struct {
-	Host       string
-	UploadOnly bool
+	Host string
 }
 
 func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
@@ -83,8 +81,7 @@ func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Con
 
 func Index(c echo.Context) error {
 	data := IndexData{
-		Host:       c.Request().Host,
-		UploadOnly: false,
+		Host: c.Request().Host,
 	}
 	return c.Render(http.StatusOK, "index", data)
 }
