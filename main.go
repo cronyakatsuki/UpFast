@@ -185,8 +185,16 @@ func Upload(c echo.Context) error {
 
 	UserAgent := c.Request().UserAgent()
 
-	if regexp.MatchString("^curl/.*", UserAgent); err != nil {
+	log.Print(UserAgent)
+
+	match, err := regexp.MatchString("^curl/.*", UserAgent)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if match {
 		return c.String(http.StatusOK, fileUrl)
 	}
+
 	return c.Redirect(http.StatusMovedPermanently, "/files/"+file.Filename)
 }
