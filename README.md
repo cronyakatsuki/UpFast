@@ -58,7 +58,7 @@ Now to make it mount on system reboot we need to add this line to fstab.
 ```bash
 # go to upfast's user's home and curl the upfast binary, make sure to run the next command's as root
 cd /usr/local/upfast
-curl -O https://code.cronyakatsuki.xyz/crony/UpFast/releases/download/v1.1/upfast
+curl -O https://code.cronyakatsuki.xyz/crony/UpFast/releases/download/v1.2/upfast
 chmod +x upfast
 ```
 ```bash
@@ -74,7 +74,7 @@ When new update of upfast come's out all you will need to change to upfast user 
 ```bash
 su upfast
 cd /usr/local/upfast
-curl -O https://code.cronyakatsuki.xyz/crony/UpFast/releases/download/v1.1/upfast
+curl -O https://code.cronyakatsuki.xyz/crony/UpFast/releases/download/v1.2/upfast
 ```
 
 ## Startup automaticallly on system restart
