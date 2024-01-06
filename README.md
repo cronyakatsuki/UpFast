@@ -22,19 +22,49 @@ You will need to rename the `upload` folder to `files`, since I changed the nami
 
 ## Installation
 
-```bash
-# Create upfast user and home directory
-useradd --shell /bin/sh --system --home-dir /usr/local/upfast upfast
-mkdir -p /usr/local/upfast # dodge copying of skeletons
-chown upfast:upfast /usr/local/upfast
-chmod 700 /usr/local/upfast
+This installation step's will also harden our installation and limit the size of how much can be uploaded at the same time so your system can't be flooded.
 
-# change to upfast user
-su upfast
-# go to upfast's user's home and curl the upfast binary
-cd ~
+### Creating user
+```bash
+# Create upfast user with no login shell, no home directory and as a system user
+useradd --shell /usr/sbin/nologin --system -M upfast
+# Resctrict login to upfast user
+usermod -L upfast
+```
+
+### Creating virtual filesystem
+
+This is done in order to limit the amount of storage the upfast installation, so people can't storage dos you.
+
+
+Creating virtual filesystem to limit amount people can upload like chad's, using dd to create an empty file of size you choose.
+
+Change the size output file to whatever you wan't and size to whatever you wan't.
+``` bash
+# make sure to first change into a directory where you wan't to save the virtual filesystem
+dd if=/dev/zero of=20gb bs=1M count=20480
+# make that file into a filesystem
+mkfs.ext4 20gb
+# create directory to mount the filesystem, I recommend /usr/local/upfast because that's where the included systemd service looks for upfast binary
+mkdir /usr/local/upfast
+# mounting the filesystem
+mount -o loop,rw /home/ivek/20gb /usr/local/upfast
+```
+Now to make it mount on system reboot we need to add this line to fstab.
+``` fstab
+/home/amir/mydatafile /usr/local/upfast ext4 loop,rw,usrquota,grpquota 0 0
+```
+### Downloading the binary
+```bash
+# go to upfast's user's home and curl the upfast binary, make sure to run the next command's as root
+cd /usr/local/upfast
 curl -O https://code.cronyakatsuki.xyz/crony/UpFast/releases/download/v1.1/upfast
 chmod +x upfast
+```
+```bash
+# Own the directory with upfast user and group
+chown upfast:upfast -R /usr/local/upfast
+chmod 700 /usr/local/upfast
 ```
 
 ## Updating
@@ -43,7 +73,7 @@ When new update of upfast come's out all you will need to change to upfast user 
 
 ```bash
 su upfast
-cd ~
+cd /usr/local/upfast
 curl -O https://code.cronyakatsuki.xyz/crony/UpFast/releases/download/v1.1/upfast
 ```
 
