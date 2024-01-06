@@ -211,7 +211,7 @@ func Upload(c echo.Context) error {
 		return c.String(http.StatusOK, fileUrl)
 	}
 
-	return c.Redirect(http.StatusMovedPermanently, "/files/"+file.Filename)
+    return c.HTML(http.StatusOK, "File uploaded at url: <strong>" + fileUrl + "</strong>")
 }
 
 func Delete(c echo.Context) error {
