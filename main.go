@@ -128,7 +128,7 @@ func Files(c echo.Context) error {
 	ImageMatch := regexp.MustCompile("^image/.*")
 	VideoMatch := regexp.MustCompile("^video/.*")
 	JsonMatch := regexp.MustCompile("application/json")
-	TextMatch := regexp.MustCompile("^text/.*|application/octet-stream")
+	TextMatch := regexp.MustCompile("^text/.*")
 
 	for _, f := range filelist {
 		filePath := "files/" + f.Name()
