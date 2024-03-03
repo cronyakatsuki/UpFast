@@ -122,6 +122,23 @@ func Files(c echo.Context) error {
 		log.Fatal(err)
 	}
 
+	UserAgent := c.Request().UserAgent()
+
+	log.Print(UserAgent)
+
+	match, err := regexp.MatchString("^curl/.*", UserAgent)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if match {
+        out := ""
+        for _, f := range filelist {
+            out += f.Name() + "\n"
+        }
+		return c.String(http.StatusOK, out)
+	}
+
 	var Type string
 	var Content string
 
