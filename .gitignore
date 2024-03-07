@@ -4,4 +4,3 @@ env
 files
 /gomod2nix-template
 .direnv
-.envrc
