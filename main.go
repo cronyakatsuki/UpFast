@@ -132,10 +132,10 @@ func Files(c echo.Context) error {
 	}
 
 	if match {
-        out := ""
-        for _, f := range filelist {
-            out += f.Name() + "\n"
-        }
+		out := ""
+		for _, f := range filelist {
+			out += f.Name() + "\n"
+		}
 		return c.String(http.StatusOK, out)
 	}
 
@@ -228,7 +228,7 @@ func Upload(c echo.Context) error {
 		return c.String(http.StatusOK, fileUrl)
 	}
 
-    return c.HTML(http.StatusOK, "File uploaded at url: <strong>" + fileUrl + "</strong>")
+	return c.HTML(http.StatusOK, "File uploaded at url: <strong>"+fileUrl+"</strong>")
 }
 
 func Delete(c echo.Context) error {
