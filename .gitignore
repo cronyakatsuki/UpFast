@@ -4,3 +4,4 @@ env
 files
 /gomod2nix-template
 .direnv
+.pre-commit-config.yaml

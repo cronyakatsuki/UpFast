@@ -11,12 +11,20 @@
   )
 , mkGoEnv ? pkgs.mkGoEnv
 , gomod2nix ? pkgs.gomod2nix
+, pre-commit-hooks
 }:
 
 let
   goEnv = mkGoEnv { pwd = ./.; };
+  pre-commit-check = pre-commit-hooks.lib.${pkgs.system}.run {
+      src = ./.;
+      hooks = {
+          gofmt.enable = true;
+      };
+  };
 in
 pkgs.mkShell {
+  inherit (pre-commit-check) shellHook;
   packages = [
     goEnv
     gomod2nix
