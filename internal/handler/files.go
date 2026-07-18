@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
@@ -100,7 +101,9 @@ func (h *Handler) APIFiles(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "failed to list files"})
+		if encErr := json.NewEncoder(w).Encode(map[string]string{"error": "failed to list files"}); encErr != nil {
+			slog.Warn("encoding error response", "err", encErr)
+		}
 		return
 	}
 
@@ -122,7 +125,9 @@ func (h *Handler) APIFiles(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	json.NewEncoder(w).Encode(resp)
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		slog.Warn("encoding JSON response", "err", err)
+	}
 }
 
 // fileInfoToItem converts a store.FileInfo to a template-friendly FileItem.

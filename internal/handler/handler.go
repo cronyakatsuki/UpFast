@@ -44,7 +44,9 @@ func (h *Handler) renderTemplate(w http.ResponseWriter, name string, data any) {
 func renderText(w http.ResponseWriter, status int, msg string) {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(status)
-	io.WriteString(w, msg)
+	if _, err := io.WriteString(w, msg); err != nil {
+		slog.Warn("writing response", "err", err)
+	}
 }
 
 // isCurl returns true if the request appears to come from curl.

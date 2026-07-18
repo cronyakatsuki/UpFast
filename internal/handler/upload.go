@@ -26,7 +26,11 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 		renderText(w, http.StatusBadRequest, "No file provided. Use -F \"file=@/path/to/file\"\n")
 		return
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			slog.Warn("closing uploaded file", "filename", header.Filename, "err", err)
+		}
+	}()
 
 	info, err := h.store.Save(header.Filename, file)
 	if err != nil {
@@ -49,5 +53,7 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, "File uploaded at url: <strong>%s</strong>", fileURL)
+	if _, err := fmt.Fprintf(w, "File uploaded at url: <strong>%s</strong>", fileURL); err != nil {
+		slog.Warn("writing upload response", "err", err)
+	}
 }

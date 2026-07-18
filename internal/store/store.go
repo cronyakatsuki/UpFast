@@ -128,12 +128,18 @@ func (s *FileSystemStore) Save(filename string, src io.Reader) (*FileInfo, error
 	if err != nil {
 		return nil, fmt.Errorf("create file: %w", err)
 	}
-	defer dst.Close()
+	defer func() {
+		if err := dst.Close(); err != nil {
+			slog.Warn("closing file after write", "path", dstPath, "err", err)
+		}
+	}()
 
 	written, err := io.Copy(dst, src)
 	if err != nil {
 		// Clean up partial write on error
-		os.Remove(dstPath)
+		if rmErr := os.Remove(dstPath); rmErr != nil && !errors.Is(rmErr, fs.ErrNotExist) {
+			slog.Warn("cleaning up partial write", "path", dstPath, "err", rmErr)
+		}
 		return nil, fmt.Errorf("write file: %w", err)
 	}
 
@@ -150,7 +156,9 @@ func (s *FileSystemStore) Save(filename string, src io.Reader) (*FileInfo, error
 	meta = append(meta, *info)
 	if err := s.writeMeta(meta); err != nil {
 		// Metadata write failed — clean up the file
-		os.Remove(dstPath)
+		if rmErr := os.Remove(dstPath); rmErr != nil && !errors.Is(rmErr, fs.ErrNotExist) {
+			slog.Warn("cleaning up file after meta write failure", "path", dstPath, "err", rmErr)
+		}
 		return nil, fmt.Errorf("write meta: %w", err)
 	}
 
@@ -311,7 +319,9 @@ func (s *FileSystemStore) writeMeta(meta []FileInfo) error {
 		return fmt.Errorf("write meta.tmp: %w", err)
 	}
 	if err := os.Rename(tmpPath, s.metaPath); err != nil {
-		os.Remove(tmpPath)
+		if rmErr := os.Remove(tmpPath); rmErr != nil && !errors.Is(rmErr, fs.ErrNotExist) {
+			slog.Warn("cleaning up temp meta file", "path", tmpPath, "err", rmErr)
+		}
 		return fmt.Errorf("rename meta: %w", err)
 	}
 
@@ -325,7 +335,11 @@ func detectFileType(path string) FileType {
 		slog.Warn("could not open file for type detection", "path", path, "err", err)
 		return FileTypeOther
 	}
-	defer f.Close()
+	defer func() {
+		if err := f.Close(); err != nil {
+			slog.Warn("closing file after type detection", "path", path, "err", err)
+		}
+	}()
 
 	buf := make([]byte, 512)
 	n, _ := f.Read(buf)

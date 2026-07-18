@@ -14,6 +14,14 @@ import (
 	"cronyakatsuki/upfast/internal/store"
 )
 
+// mustSave saves a file to the mock store and fails the test on error.
+func mustSave(t *testing.T, ms *mockStore, name, content string) {
+	t.Helper()
+	if _, err := ms.Save(name, strings.NewReader(content)); err != nil {
+		t.Fatalf("mockStore.Save(%q): %v", name, err)
+	}
+}
+
 // ---------------------------------------------------------------------------
 // Mock store — in-memory implementation of store.Store for tests
 // ---------------------------------------------------------------------------
@@ -259,8 +267,8 @@ func TestUpload_Duplicate(t *testing.T) {
 func TestFiles_Curl(t *testing.T) {
 	ms := newMockStore()
 	h := testHandler(t, ms)
-	ms.Save("a.txt", strings.NewReader("aaa"))
-	ms.Save("b.txt", strings.NewReader("bbb"))
+	mustSave(t, ms, "a.txt", "aaa")
+	mustSave(t, ms, "b.txt", "bbb")
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", "/files", nil)
@@ -285,7 +293,7 @@ func TestFiles_Curl(t *testing.T) {
 func TestFiles_HTML(t *testing.T) {
 	ms := newMockStore()
 	h := testHandler(t, ms)
-	ms.Save("a.txt", strings.NewReader("aaa"))
+	mustSave(t, ms, "a.txt", "aaa")
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", "/files", nil)
@@ -318,9 +326,9 @@ func TestAPIFiles(t *testing.T) {
 	h := testHandler(t, ms)
 
 	// Save 3 files
-	ms.Save("a.txt", strings.NewReader("aaa"))
-	ms.Save("b.txt", strings.NewReader("bbb"))
-	ms.Save("c.txt", strings.NewReader("ccc"))
+	mustSave(t, ms, "a.txt", "aaa")
+	mustSave(t, ms, "b.txt", "bbb")
+	mustSave(t, ms, "c.txt", "ccc")
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", "/api/files?offset=0&limit=2", nil)
@@ -352,7 +360,7 @@ func TestAPIFiles(t *testing.T) {
 func TestDelete(t *testing.T) {
 	ms := newMockStore()
 	h := testHandler(t, ms)
-	ms.Save("delete-me.txt", strings.NewReader("bye"))
+	mustSave(t, ms, "delete-me.txt", "bye")
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("DELETE", "/files/delete-me.txt", nil)
