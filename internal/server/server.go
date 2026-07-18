@@ -42,7 +42,8 @@ func New(cfg Config, tmpl *template.Template, staticFS http.FileSystem) (*http.S
 	mux.Handle("GET /js/", http.FileServer(staticFS))
 
 	// Serve uploaded files directly from the files directory
-	mux.Handle("GET /files/", http.StripPrefix("/files/",
+	mux.Handle("GET /files/", http.StripPrefix(
+		"/files/",
 		http.FileServer(http.Dir(filesDir)),
 	))
 
@@ -78,7 +79,8 @@ func withLogging(logger *slog.Logger, next http.Handler) http.Handler {
 		start := time.Now()
 		sw := &statusWriter{ResponseWriter: w, status: http.StatusOK}
 		next.ServeHTTP(sw, r)
-		logger.Info("request",
+		logger.Info(
+			"request",
 			"method", r.Method,
 			"path", r.URL.Path,
 			"status", sw.status,

@@ -37,7 +37,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	slog.Info("starting server",
+	slog.Info(
+		"starting server",
 		"addr", cfg.Host+":"+strconv.Itoa(cfg.Port),
 		"domain", cfg.Domain,
 	)

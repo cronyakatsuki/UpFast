@@ -58,7 +58,7 @@ func TestNewFileSystemStore_ExistingDir(t *testing.T) {
 	// Pre-create meta.json with existing entry
 	metaContent := `[{"name":"pre-existing","fileType":"text","size":4,"uploadedAt":100}]`
 	metaPath := filepath.Join(dir, "meta.json")
-	if err := os.WriteFile(metaPath, []byte(metaContent), 0644); err != nil {
+	if err := os.WriteFile(metaPath, []byte(metaContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
 

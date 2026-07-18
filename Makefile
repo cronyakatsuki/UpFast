@@ -30,11 +30,16 @@ all: fmt vet lint test build
 # Build
 # ---------------------------------------------------------------------------
 
-build: $(OUT_DIR)/$(BINARY)
+build: $(OUT_DIR)/$(BINARY) $(OUT_DIR)/migrate
 
-$(OUT_DIR)/$(BINARY):
-	@mkdir -p $(OUT_DIR)
+$(OUT_DIR)/$(BINARY): | $(OUT_DIR)
 	$(GO) build $(GOFLAGS) -ldflags="$(LDFLAGS)" -o $@ $(CMD_DIR)
+
+$(OUT_DIR)/migrate: | $(OUT_DIR)
+	$(GO) build $(GOFLAGS) -ldflags="$(LDFLAGS)" -o $@ ./cmd/migrate
+
+$(OUT_DIR):
+	@mkdir -p $(OUT_DIR)
 
 build-race:
 	@mkdir -p $(OUT_DIR)

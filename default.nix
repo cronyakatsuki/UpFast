@@ -1,9 +1,10 @@
-{ pkgs ? import <nixpkgs> {}, buildGoModule ? pkgs.buildGoModule }:
+{ pkgs ? import <nixpkgs> {}, buildGoModule ? pkgs.buildGoModule
+, subPackages ? [ "cmd/upfast" ], pnameSuffix ? ""
+}:
 buildGoModule {
-  pname = "upfast";
+  pname = "upfast${pnameSuffix}";
   version = "1.3";
   src = ./.;
-  # No external dependencies — null means no vendor hash needed
   vendorHash = null;
-  subPackages = [ "cmd/upfast" ];
+  inherit subPackages;
 }

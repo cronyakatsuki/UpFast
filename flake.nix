@@ -9,9 +9,19 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
       in {
-        packages.default = pkgs.callPackage ./default.nix {};
+        packages = {
+          # nix build .#default  — main server binary
+          default = pkgs.callPackage ./default.nix { };
 
-        devShells.default = pkgs.callPackage ./shell.nix {};
+          # nix build .#migrate  — migration tool
+          # nix run .#migrate -- -dir /path/to/files
+          migrate = pkgs.callPackage ./default.nix {
+            subPackages = [ "cmd/migrate" ];
+            pnameSuffix = "-migrate";
+          };
+        };
+
+        devShells.default = pkgs.callPackage ./shell.nix { };
 
         checks.go-lint = pkgs.stdenvNoCC.mkDerivation {
           name = "go-lint";

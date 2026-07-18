@@ -74,14 +74,14 @@ var (
 // FileSystemStore stores files in a local directory with a meta.json sidecar
 // for fast metadata lookups without re-reading file headers.
 type FileSystemStore struct {
-	dir        string
-	metaPath   string
-	mu         sync.RWMutex
+	dir      string
+	metaPath string
+	mu       sync.RWMutex
 }
 
 // NewFileSystemStore creates a store rooted at dir, creating it if needed.
 func NewFileSystemStore(dir string) (*FileSystemStore, error) {
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return nil, fmt.Errorf("create store dir: %w", err)
 	}
 
@@ -281,6 +281,91 @@ func (s *FileSystemStore) ReadContent(filename string, maxSize int64) (string, e
 	return string(data), nil
 }
 
+// RebuildMeta scans the store directory and rebuilds meta.json from the
+// actual files on disk. This is useful for migrating from the old flat
+// storage format (where files existed without metadata).
+//
+// Files already in meta.json are preserved (their metadata is kept).
+// Files on disk without a meta entry get their type detected and are added.
+// Meta entries without a corresponding file on disk are removed.
+func (s *FileSystemStore) RebuildMeta() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	// Read existing meta (ignore errors — start fresh if corrupt)
+	meta, _ := s.readMeta()
+	if meta == nil {
+		meta = []FileInfo{}
+	}
+
+	// Build a lookup of existing entries
+	existing := make(map[string]bool)
+	for _, f := range meta {
+		existing[f.Name] = true
+	}
+
+	// Read all entries in the directory
+	dirEntries, err := os.ReadDir(s.dir)
+	if err != nil {
+		return fmt.Errorf("read dir: %w", err)
+	}
+
+	for _, entry := range dirEntries {
+		name := entry.Name()
+
+		// Skip meta.json and temp files
+		if name == "meta.json" || name == "meta.json.tmp" || name == "meta.json.tmp.tmp" {
+			continue
+		}
+
+		if entry.IsDir() {
+			continue
+		}
+
+		if existing[name] {
+			// Already in metadata — keep it
+			continue
+		}
+
+		info, err := entry.Info()
+		if err != nil {
+			slog.Warn("reading file info", "file", name, "err", err)
+			continue
+		}
+
+		path := filepath.Join(s.dir, name)
+		ft := detectFileType(path)
+
+		meta = append(meta, FileInfo{
+			Name:       name,
+			FileType:   ft,
+			Size:       info.Size(),
+			UploadedAt: info.ModTime().UnixMicro(),
+		})
+
+		slog.Info("migrated file", "name", name, "type", ft, "size", info.Size())
+	}
+
+	// Remove meta entries without corresponding files on disk
+	diskFiles := make(map[string]bool)
+	for _, entry := range dirEntries {
+		if !entry.IsDir() {
+			diskFiles[entry.Name()] = true
+		}
+	}
+
+	cleaned := make([]FileInfo, 0, len(meta))
+	for _, f := range meta {
+		if f.Name == "meta.json" || f.Name == "meta.json.tmp" || f.Name == "meta.json.tmp.tmp" || diskFiles[f.Name] {
+			cleaned = append(cleaned, f)
+		} else {
+			slog.Info("removed stale meta entry (file missing)", "name", f.Name)
+		}
+	}
+
+	return s.writeMeta(cleaned)
+}
+
 // readMeta reads and returns the full metadata list, sorted newest-first.
 func (s *FileSystemStore) readMeta() ([]FileInfo, error) {
 	data, err := os.ReadFile(s.metaPath)
@@ -315,7 +400,7 @@ func (s *FileSystemStore) writeMeta(meta []FileInfo) error {
 
 	// Write to a temp file first, then rename for atomicity
 	tmpPath := s.metaPath + ".tmp"
-	if err := os.WriteFile(tmpPath, data, 0644); err != nil {
+	if err := os.WriteFile(tmpPath, data, 0o644); err != nil {
 		return fmt.Errorf("write meta.tmp: %w", err)
 	}
 	if err := os.Rename(tmpPath, s.metaPath); err != nil {
