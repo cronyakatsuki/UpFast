@@ -1,121 +1,222 @@
 # UpFast
 
-The new and improwed version of upfast, now writen in GO!
+Minimal file upload and sharing tool. Influenced by [0x0.st](https://0x0.st).
 
-This one is gonna be a lot easier to deploy since all you need to do is download the upfast binary and run it in a directory.
-
-To change the port or the ip adress to listen for you can use `-p` and `-a` options respectivelly.
-
-There is alse the `-d` option that will set what domain name upfast will return when returning the file path when uploaded.
-
-> example
+Upload files via curl or browser, get a shareable URL back. Files are listed
+with previews for images, videos, and text.
 
 ```bash
-./upfast -p 8080 -a 0.0.0.0 -d https://upfast.cronyakatsuki.xyz
+curl -F "file=@/path/to/image.jpg" https://upfast.example.com
+# → https://upfast.example.com/files/image.jpg
 ```
 
-By default upfast listen's on 127.0.0.1 adress so if you wan't to access it outside your network you will either need to listen to 0.0.0.0 or use a reverse proxy. I recommend the usage of a reverse proxy.
+## Features
 
-## Note for the users of the python version
+- **Single binary** — zero runtime dependencies, pure Go
+- **Upload** via curl (`-F "file=@..."`) or browser form
+- **File listing** with inline previews (images, videos, text)
+- **Infinite scroll** on the file listing page (loads 20 files at a time)
+- **curl-aware** — returns plain text for curl, HTML for browsers
+- **Delete** files via `curl -X DELETE`
+- **JSON API** — `GET /api/files?offset=0&limit=20` for pagination
+- **Metadata sidecar** — file types detected once at upload, saved in `meta.json`
+- **No external dependencies** — uses only Go standard library (Go 1.23+)
 
-You will need to rename the `upload` folder to `files`, since I changed the naming a bit.
+## Quick start
 
-## Installation
-
-This installation step's will also harden our installation and limit the size of how much can be uploaded at the same time so your system can't be flooded.
-
-### Creating user
 ```bash
-# Create upfast user with no login shell, no home directory and as a system user
+# Build
+go build -o upfast ./cmd/upfast
+
+# Run (default: http://127.0.0.1:1323)
+./upfast
+
+# Or with options
+./upfast -p 8080 -a 0.0.0.0 -d https://upfast.example.com
+```
+
+Or using the Makefile:
+
+```bash
+make build   # -> bin/upfast
+make run     # -> runs on :1323
+make run ARGS="-p 8080 -a 0.0.0.0 -d https://upfast.example.com"
+```
+
+## Usage
+
+### Upload a file
+
+```bash
+curl -F "file=@/path/to/image.jpg" http://127.0.0.1:1323
+# → http://127.0.0.1:1323/files/image.jpg
+```
+
+### List all files (plain text)
+
+```bash
+curl http://127.0.0.1:1323/files
+# → image.jpg
+# → notes.txt
+```
+
+### List via browser
+
+Open `http://127.0.0.1:1323/files` in a browser. The page loads the first 20
+files and automatically loads more as you scroll.
+
+### Delete a file
+
+```bash
+curl -X DELETE http://127.0.0.1:1323/files/image.jpg
+# → Deleted file from server: image.jpg
+```
+
+### JSON API (for custom clients)
+
+```bash
+curl 'http://127.0.0.1:1323/api/files?offset=0&limit=10'
+# → {"files":[{"name":"image.jpg","fileType":"image","url":"...","size":12345}],"hasMore":false,"offset":0,"limit":10}
+```
+
+## Development
+
+### Prerequisites
+
+- Go 1.23 or later
+- Optionally: [Nix](https://nixos.org/) for the dev shell
+
+### Commands
+
+```bash
+make all        # fmt → vet → lint → test → build
+make test       # run all tests
+make test-race  # run tests with race detector
+make test-cover # run tests with coverage report
+make lint       # run golangci-lint
+make fmt        # format code with gofumpt
+make clean      # remove build artifacts
+```
+
+### Nix shell
+
+A `flake.nix` and `shell.nix` are provided for a reproducible development
+environment:
+
+```bash
+nix develop          # enter dev shell (Go 1.26, golangci-lint, gopls, etc.)
+nix build            # build the package
+nix flake check      # run all checks (build + lint)
+```
+
+### Project structure
+
+```
+├── assets.go              ← Embedded templates and static files
+├── cmd/
+│   └── upfast/
+│       └── main.go        ← Entry point
+├── internal/
+│   ├── handler/           ← HTTP handlers (one file per endpoint)
+│   │   ├── handler.go     ← Shared Handler struct + helpers
+│   │   ├── index.go       ← GET /
+│   │   ├── upload.go      ← POST /
+│   │   ├── files.go       ← GET /files/ + GET /api/files
+│   │   ├── delete.go      ← DELETE /files/{file}
+│   │   └── handler_test.go
+│   ├── server/
+│   │   └── server.go      ← Route setup, middleware, Config
+│   └── store/
+│       ├── store.go       ← Store interface + FileSystemStore
+│       └── store_test.go
+├── public/views/           ← HTML templates (index, files)
+├── static/css/             ← Stylesheets
+├── go.mod                  ← Go 1.23, zero dependencies
+├── Makefile
+├── flake.nix / shell.nix   ← Nix development environment
+└── README.md
+```
+
+## Deployment
+
+### Option A: Direct binary
+
+```bash
+# Build on the target machine
+go build -o /usr/local/bin/upfast ./cmd/upfast
+
+# Or cross-compile from your dev machine
+GOOS=linux GOARCH=amd64 go build -o upfast-linux-amd64 ./cmd/upfast
+```
+
+### Option B: Nix
+
+```bash
+nix build           # produces result/bin/upfast
+cp result/bin/upfast /usr/local/bin/
+```
+
+### Production hardening
+
+Create a dedicated user and limit storage with a virtual filesystem:
+
+```bash
+# Create upfast user
 useradd --shell /usr/sbin/nologin --system -M upfast
-# Resctrict login to upfast user
 usermod -L upfast
-```
 
-### Creating virtual filesystem
+# Limit storage with a 20GB loop filesystem
+dd if=/dev/zero of=/usr/local/upfast/storage.img bs=1M count=20480
+mkfs.ext4 /usr/local/upfast/storage.img
+mount -o loop,rw /usr/local/upfast/storage.img /usr/local/upfast/data
 
-This is done in order to limit the amount of storage the upfast installation, so people can't storage dos you.
+# Add to /etc/fstab:
+# /usr/local/upfast/storage.img /usr/local/upfast/data ext4 loop,rw,usrquota,grpquota 0 0
 
-
-Creating virtual filesystem to limit amount people can upload like chad's, using dd to create an empty file of size you choose.
-
-Change the size output file to whatever you wan't and size to whatever you wan't.
-``` bash
-# make sure to first change into a directory where you wan't to save the virtual filesystem
-dd if=/dev/zero of=20gb bs=1M count=20480
-# make that file into a filesystem
-mkfs.ext4 20gb
-# create directory to mount the filesystem, I recommend /usr/local/upfast because that's where the included systemd service looks for upfast binary
-mkdir /usr/local/upfast
-# mounting the filesystem
-mount -o loop,rw /home/ivek/20gb /usr/local/upfast
-```
-Now to make it mount on system reboot we need to add this line to fstab.
-``` fstab
-/home/amir/mydatafile /usr/local/upfast ext4 loop,rw,usrquota,grpquota 0 0
-```
-### Downloading the binary
-```bash
-# go to upfast's user's home and curl the upfast binary, make sure to run the next command's as root
-cd /usr/local/upfast
-curl -O https://code.cronyakatsuki.xyz/crony/UpFast/releases/download/v1.2/upfast
-chmod +x upfast
-```
-```bash
-# Own the directory with upfast user and group
+# Set ownership
 chown upfast:upfast -R /usr/local/upfast
 chmod 700 /usr/local/upfast
 ```
 
-## Updating
+### Systemd service
 
-When new update of upfast come's out all you will need to change to upfast user and curl the new binary in it's home directory overwritting the old one like this.
+Create `/etc/systemd/system/upfast.service`:
 
-```bash
-su upfast
-cd /usr/local/upfast
-curl -O https://code.cronyakatsuki.xyz/crony/UpFast/releases/download/v1.2/upfast
-```
-
-## Startup automaticallly on system restart
-
-If you use the old version of upfast you just need to change values in the systemd service located `/etc/systemd/system/upfast.service`, otherwise create a file in that path with this content.
-
-> /etc/systemd/system/upfast.service
-
-```systemd-service
+```ini
 [Unit]
-Description=UpFast service
-Documentation=https://code.cronyakatsuki.xyz/crony/upfast
+Description=UpFast file sharing service
+Documentation=https://github.com/cronyakatsuki/upfast
+After=network.target
 
 [Service]
 User=upfast
 Group=upfast
-WorkingDirectory=/usr/local/upfast/
-ExecStart=/usr/local/upfast/upfast -p 8000 -a 127.0.0.1 -d https://upfast.cronyakatsuki.xyz
+WorkingDirectory=/usr/local/upfast/data
+ExecStart=/usr/local/upfast/upfast -p 8000 -a 127.0.0.1 -d https://upfast.example.com
 Restart=on-failure
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
 ```
 
-Remember to change the port if you need to, the listening adress and the domain name.
+```bash
+systemctl daemon-reload
+systemctl enable --now upfast
+```
 
-After that run `systemctl daemon-reload` as root or with sudo.
-
-## Nginx proxy setup
-
-To setup nginx as the reverse proxy you will need to add this server block to either the main nginx config file or in a separate file depending on your version of nginx.
+### Nginx reverse proxy
 
 ```nginx
 server {
-   listen 80;
-   listen [::]:80;
+    listen 80;
+    listen [::]:80;
+    server_name upfast.example.com;
 
-   server_name upfast.example.xyz;
+    client_max_body_size 0;  # no upload size limit
 
-   location / {
-        proxy_pass https://127.0.0.1:8000;
+    location / {
+        proxy_pass http://127.0.0.1:8000;
         proxy_set_header Host $http_host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-Proto $scheme;
@@ -123,3 +224,20 @@ server {
     }
 }
 ```
+
+## How it works
+
+Files are stored in a `files/` directory. Metadata (filename, type, size,
+upload timestamp) is kept in a `files/meta.json` sidecar for fast listing
+without re-reading every file's header.
+
+When a file is uploaded, its content type is detected from the first 512
+bytes using magic byte signatures (JPEG, PNG, GIF, MP4, etc.). This
+happens once at upload time, not on every listing request.
+
+The server detects curl via the User-Agent header and returns plain text
+responses instead of HTML.
+
+## License
+
+MIT
