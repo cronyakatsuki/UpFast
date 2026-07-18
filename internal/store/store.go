@@ -37,7 +37,7 @@ type FileInfo struct {
 	Name       string   `json:"name"`
 	FileType   FileType `json:"fileType"`
 	Size       int64    `json:"size"`
-	UploadedAt int64    `json:"uploadedAt"` // Unix timestamp (seconds)
+	UploadedAt int64    `json:"uploadedAt"` // Unix timestamp (microseconds)
 }
 
 // Store defines the interface for file storage operations.
@@ -59,6 +59,10 @@ type Store interface {
 
 	// Path returns the full filesystem path for a stored filename.
 	Path(filename string) string
+
+	// ReadContent reads a stored file's content up to maxSize bytes.
+	// Returns the content as a string. If the file doesn't exist, returns ErrNotExist.
+	ReadContent(filename string, maxSize int64) (string, error)
 }
 
 // Common sentinel errors.
@@ -140,7 +144,7 @@ func (s *FileSystemStore) Save(filename string, src io.Reader) (*FileInfo, error
 		Name:       filename,
 		FileType:   ft,
 		Size:       written,
-		UploadedAt: time.Now().Unix(),
+		UploadedAt: time.Now().UnixMicro(),
 	}
 
 	meta = append(meta, *info)
@@ -230,6 +234,43 @@ func (s *FileSystemStore) Delete(filename string) error {
 // Path returns the full filesystem path for a filename.
 func (s *FileSystemStore) Path(filename string) string {
 	return filepath.Join(s.dir, filename)
+}
+
+// ReadContent reads file content up to maxSize bytes. Returns ErrNotExist if file doesn't exist.
+func (s *FileSystemStore) ReadContent(filename string, maxSize int64) (string, error) {
+	path := filepath.Join(s.dir, filename)
+
+	// Verify file exists in metadata
+	s.mu.RLock()
+	meta, err := s.readMeta()
+	s.mu.RUnlock()
+	if err != nil {
+		return "", err
+	}
+	found := false
+	for _, f := range meta {
+		if f.Name == filename {
+			found = true
+			break
+		}
+	}
+	if !found {
+		return "", ErrNotExist
+	}
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		if errors.Is(err, fs.ErrNotExist) {
+			return "", ErrNotExist
+		}
+		return "", fmt.Errorf("read file: %w", err)
+	}
+
+	if int64(len(data)) > maxSize {
+		data = data[:maxSize]
+	}
+
+	return string(data), nil
 }
 
 // readMeta reads and returns the full metadata list, sorted newest-first.

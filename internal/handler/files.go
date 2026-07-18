@@ -9,6 +9,9 @@ import (
 	"cronyakatsuki/upfast/internal/store"
 )
 
+// Max text preview size — files larger than this won't have inline content.
+const maxTextPreview = 100 * 1024 // 100 KB
+
 // FilesData is passed to the files HTML template.
 type FilesData struct {
 	Files     []FileItem
@@ -70,7 +73,7 @@ func (h *Handler) filesHTML(w http.ResponseWriter, _ *http.Request) {
 
 	items := make([]FileItem, 0, len(files))
 	for _, f := range files {
-		items = append(items, fileInfoToItem(f))
+		items = append(items, h.fileInfoToItem(f))
 	}
 
 	data := FilesData{
@@ -123,10 +126,20 @@ func (h *Handler) APIFiles(w http.ResponseWriter, r *http.Request) {
 }
 
 // fileInfoToItem converts a store.FileInfo to a template-friendly FileItem.
-func fileInfoToItem(f store.FileInfo) FileItem {
+// For text files under maxTextPreview, it reads and embeds the content.
+func (h *Handler) fileInfoToItem(f store.FileInfo) FileItem {
 	item := FileItem{
 		Name:     f.Name,
 		FileType: string(f.FileType),
 	}
+
+	// Read text file content for inline preview (only for initial page render)
+	if f.FileType == store.FileTypeText && f.Size <= maxTextPreview {
+		content, err := h.store.ReadContent(f.Name, maxTextPreview)
+		if err == nil {
+			item.Content = content
+		}
+	}
+
 	return item
 }
