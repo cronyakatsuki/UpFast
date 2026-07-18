@@ -17,8 +17,17 @@
 in
   pkgs.mkShell {
     packages = [
+      # Go
       goEnv
       gomod2nix
       pkgs.gopls
+      pkgs.gofumpt
+      pkgs.gotools
+      pkgs.golangci-lint
+      pkgs.delve
+      
+      # Nix
+      pkgs.alejandra
+      pkgs.nixd
     ];
   }
