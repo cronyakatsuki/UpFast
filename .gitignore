@@ -6,3 +6,4 @@ files
 .direnv
 .pre-commit-config.yaml
 result
+bin
