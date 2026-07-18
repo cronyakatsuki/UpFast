@@ -18,6 +18,7 @@
           migrate = pkgs.callPackage ./default.nix {
             subPackages = [ "cmd/migrate" ];
             pnameSuffix = "-migrate";
+            mainProgram = "migrate";
           };
         };
 

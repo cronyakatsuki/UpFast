@@ -1,5 +1,6 @@
 { pkgs ? import <nixpkgs> {}, buildGoModule ? pkgs.buildGoModule
 , subPackages ? [ "cmd/upfast" ], pnameSuffix ? ""
+, mainProgram ? "upfast"
 }:
 buildGoModule {
   pname = "upfast${pnameSuffix}";
@@ -7,4 +8,6 @@ buildGoModule {
   src = ./.;
   vendorHash = null;
   inherit subPackages;
+
+  meta.mainProgram = mainProgram;
 }
