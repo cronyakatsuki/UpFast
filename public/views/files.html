@@ -7,17 +7,46 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="/css/files.css" rel="stylesheet" />
+  <style>
+    /* Loading spinner */
+    .loader {
+      text-align: center;
+      padding: 2rem;
+      color: #8caaee;
+      font-style: italic;
+    }
+    .loader.hidden {
+      display: none;
+    }
+    /* End-of-list message */
+    .end-msg {
+      text-align: center;
+      padding: 2rem;
+      color: #626880;
+    }
+    .end-msg.hidden {
+      display: none;
+    }
+    /* Sentinel — tiny invisible element to trigger infinite scroll */
+    #sentinel {
+      height: 1px;
+    }
+  </style>
 </head>
 
 <body>
   <h1>File List</h1>
+
+  <div id="file-list">
   {{range .Files}}
   <hr />
   <div class="file">
     {{if eq .FileType "image"}}
-    <img src="/files/{{.Name}}" alt="{{.Name}}" />
+    <img src="/files/{{.Name}}" alt="{{.Name}}" loading="lazy" />
     {{else if eq .FileType "video"}}
-    <video controls src="/files/{{.Name}}" />
+    <video controls preload="metadata">
+      <source src="/files/{{.Name}}" />
+    </video>
     {{else if eq .FileType "text"}}
     <pre>{{.Content}}</pre>
     {{end}}
@@ -26,6 +55,152 @@
     </div>
   </div>
   {{end}}
+  </div>
+
+  <!-- Sentinel for IntersectionObserver -->
+  <div id="sentinel"></div>
+
+  <!-- Loading indicator -->
+  <div id="loader" class="loader hidden">Loading more files…</div>
+
+  <!-- End of list message -->
+  <div id="end-msg" class="end-msg hidden">— No more files —</div>
+
+  <script>
+    (function() {
+      'use strict';
+
+      const PAGE_SIZE = {{.NextBatch}};
+      let offset = {{.NextBatch}};
+      let hasMore = {{.HasMore}};
+      let loading = false;
+
+      const fileList = document.getElementById('file-list');
+      const sentinel = document.getElementById('sentinel');
+      const loader = document.getElementById('loader');
+      const endMsg = document.getElementById('end-msg');
+
+      // Fetch and append a page of files
+      async function fetchMore() {
+        if (loading || !hasMore) return;
+        loading = true;
+        loader.classList.remove('hidden');
+
+        try {
+          const res = await fetch('/api/files?offset=' + offset + '&limit=' + PAGE_SIZE);
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          const data = await res.json();
+
+          for (const file of data.files) {
+            appendFile(file);
+          }
+
+          offset += data.files.length;
+          hasMore = data.hasMore;
+
+          if (!hasMore) {
+            endMsg.classList.remove('hidden');
+          }
+        } catch (err) {
+          console.error('Failed to load more files:', err);
+        } finally {
+          loading = false;
+          loader.classList.add('hidden');
+        }
+      }
+
+      // Fill in text content for any empty <pre> tags (large files, or
+      // files loaded via infinite scroll where content wasn't embedded)
+      function fillTextPreviews() {
+        document.querySelectorAll('.file pre:empty').forEach(function(pre) {
+          // Find the download link to get the file URL
+          const link = pre.closest('.file').querySelector('.info a');
+          if (!link) return;
+          const url = link.getAttribute('href');
+          pre.textContent = 'Loading content…';
+          fetch(url)
+            .then(function(r) { return r.text(); })
+            .then(function(text) { pre.textContent = text; })
+            .catch(function() { pre.textContent = '(error loading content)'; });
+        });
+      }
+
+      // Run on page load to catch any pre-rendered text files without content
+      fillTextPreviews();
+
+      // Create and append a file element from API data
+      function appendFile(file) {
+        const div = document.createElement('div');
+        div.className = 'file';
+
+        const hr = document.createElement('hr');
+        fileList.appendChild(hr);
+
+        if (file.fileType === 'image') {
+          const img = document.createElement('img');
+          img.src = file.url;
+          img.alt = file.name;
+          img.loading = 'lazy';
+          div.appendChild(img);
+
+        } else if (file.fileType === 'video') {
+          const video = document.createElement('video');
+          video.controls = true;
+          video.preload = 'metadata';
+          const source = document.createElement('source');
+          source.src = file.url;
+          video.appendChild(source);
+          div.appendChild(video);
+
+        } else if (file.fileType === 'text') {
+          const pre = document.createElement('pre');
+          pre.textContent = 'Loading content…';
+          div.appendChild(pre);
+          // Fetch text content asynchronously
+          fetch(file.url)
+            .then(r => r.text())
+            .then(text => { pre.textContent = text; })
+            .catch(() => { pre.textContent = '(error loading content)'; });
+
+        } else {
+          // Other file types — just the download link
+        }
+
+        // Download link
+        const info = document.createElement('div');
+        info.className = 'info';
+        const link = document.createElement('a');
+        link.href = file.url;
+        link.download = file.name;
+        link.textContent = file.name;
+        info.appendChild(link);
+        div.appendChild(info);
+
+        fileList.appendChild(div);
+      }
+
+      // Set up IntersectionObserver on the sentinel
+      if (window.IntersectionObserver) {
+        const observer = new IntersectionObserver(function(entries) {
+          for (const entry of entries) {
+            if (entry.isIntersecting) {
+              fetchMore();
+            }
+          }
+        }, { rootMargin: '200px' }); // Trigger 200px before sentinel is visible
+
+        observer.observe(sentinel);
+      } else {
+        // Fallback: listen for scroll events
+        window.addEventListener('scroll', function() {
+          const rect = sentinel.getBoundingClientRect();
+          if (rect.top < window.innerHeight + 200) {
+            fetchMore();
+          }
+        });
+      }
+    })();
+  </script>
 </body>
 
 </html>
