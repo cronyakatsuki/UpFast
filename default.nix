@@ -1,21 +1,9 @@
-{
-  pkgs ? (
-    let
-      inherit (builtins) fetchTree fromJSON readFile;
-      inherit ((fromJSON (readFile ./flake.lock)).nodes) nixpkgs gomod2nix;
-    in
-      import (fetchTree nixpkgs.locked) {
-        overlays = [
-          (import "${fetchTree gomod2nix.locked}/overlay.nix")
-        ];
-      }
-  ),
-  buildGoApplication ? pkgs.buildGoApplication,
-}:
-buildGoApplication {
+{ pkgs ? import <nixpkgs> {}, buildGoModule ? pkgs.buildGoModule }:
+buildGoModule {
   pname = "upfast";
   version = "1.3";
-  pwd = ./.;
   src = ./.;
-  modules = ./gomod2nix.toml;
+  # No external dependencies — null means no vendor hash needed
+  vendorHash = null;
+  subPackages = [ "cmd/upfast" ];
 }

@@ -1,50 +1,33 @@
 {
-  description = "A basic gomod2nix flake";
+  description = "UpFast — minimal file upload and sharing tool";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   inputs.flake-utils.url = "github:numtide/flake-utils";
-  inputs.gomod2nix.url = "github:nix-community/gomod2nix";
-  inputs.gomod2nix.inputs.nixpkgs.follows = "nixpkgs";
-  inputs.gomod2nix.inputs.flake-utils.follows = "flake-utils";
 
-  outputs = {
-    self,
-    nixpkgs,
-    flake-utils,
-    gomod2nix,
-  }: (flake-utils.lib.eachDefaultSystem (
-    system: let
-      pkgs = nixpkgs.legacyPackages.${system};
+  outputs = { self, nixpkgs, flake-utils, ... }:
+    flake-utils.lib.eachDefaultSystem (system:
+      let
+        pkgs = nixpkgs.legacyPackages.${system};
+      in {
+        packages.default = pkgs.callPackage ./default.nix {};
 
-      callPackage = pkgs.callPackage;
-      # Simple lint check added to nix flake check
-      go-lint = pkgs.stdenvNoCC.mkDerivation {
-        name = "go-lint";
-        dontBuild = true;
-        src = ./.;
-        doCheck = true;
-        nativeBuildInputs = with pkgs; [
-          golangci-lint
-          go
-          writableTmpDirAsHomeHook
-        ];
-        checkPhase = ''
-          golangci-lint run
-        '';
-        installPhase = ''
-          mkdir "$out"
-        '';
-      };
-    in {
-      checks = {
-        inherit go-lint;
-      };
-      packages.default = callPackage ./. {
-        inherit (gomod2nix.legacyPackages.${system}) buildGoApplication;
-      };
-      devShells.default = callPackage ./shell.nix {
-        inherit (gomod2nix.legacyPackages.${system}) mkGoEnv gomod2nix;
-      };
-    }
-  ));
+        devShells.default = pkgs.callPackage ./shell.nix {};
+
+        checks.go-lint = pkgs.stdenvNoCC.mkDerivation {
+          name = "go-lint";
+          dontBuild = true;
+          src = ./.;
+          doCheck = true;
+          nativeBuildInputs = with pkgs; [
+            golangci-lint
+            go
+            writableTmpDirAsHomeHook
+          ];
+          # Disable CGO so net/http doesn't need a C compiler in the sandbox
+          CGO_ENABLED = 0;
+          checkPhase = "golangci-lint run";
+          installPhase = "mkdir $out";
+        };
+      }
+    );
 }
